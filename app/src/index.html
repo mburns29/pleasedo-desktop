@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
+  <title>PleaseDo Desktop</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --bg: #0f0f14;
+      --card: #1a1a24;
+      --text: #f0f0f5;
+      --text-dim: #8888a0;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+    
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      -webkit-app-region: no-drag;
+    }
+    
+    .logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      color: var(--text-dim);
+      margin-bottom: 40px;
+    }
+    
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .screen { display: none; }
+    .screen.active { display: block; }
+    
+    h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .step {
+      display: flex;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .step:last-child { border-bottom: none; }
+    
+    .step-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 20px;
+    }
+    .step-icon.pending { background: rgba(255,255,255,0.1); }
+    .step-icon.done { background: var(--success); }
+    .step-icon.error { background: var(--error); }
+    .step-icon.loading { 
+      background: var(--primary);
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .step-text { flex: 1; }
+    .step-title { font-weight: 500; }
+    .step-desc { font-size: 13px; color: var(--text-dim); }
+    
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-size: 15px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-color: var(--primary);
+    }
+    input::placeholder {
+      color: var(--text-dim);
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button:hover { background: var(--primary-dark); }
+    button:active { transform: scale(0.98); }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.1);
+    }
+    button.secondary:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--card);
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-dot.off { background: var(--text-dim); }
+    .status-dot.on { background: var(--success); }
+    .status-dot.loading { 
+      background: var(--primary);
+      animation: pulse 1s infinite;
+    }
+    
+    .status-text {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    
+    .progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s;
+    }
+    
+    .main-button {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      font-size: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    
+    .helper-text {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    
+    .link {
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .link:hover { text-decoration: underline; }
+    
+    .error-text {
+      color: var(--error);
+      font-size: 14px;
+      margin: 12px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🤖</div>
+    <h1>PleaseDo Desktop</h1>
+    <p class="subtitle">Your AI Agent, Fully Isolated</p>
+    
+    <!-- Setup Screen -->
+    <div class="card screen active" id="screen-setup">
+      <h2>Setup</h2>
+      
+      <div class="step" id="step-vbox">
+        <div class="step-icon pending">1</div>
+        <div class="step-text">
+          <div class="step-title">VirtualBox</div>
+          <div class="step-desc">Required for isolation</div>
+        </div>
+      </div>
+      
+      <div class="step" id="step-vm">
+        <div class="step-icon pending">2</div>
+        <div class="step-text">
+          <div class="step-title">Import VM</div>
+          <div class="step-desc">One-time setup</div>
+        </div>
+      </div>
+      
+      <div class="step" id="step-config">
+        <div class="step-icon pending">3</div>
+        <div class="step-text">
+          <div class="step-title">Configure</div>
+          <div class="step-desc">API key required</div>
+        </div>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="setup-progress"></div>
+      </div>
+      
+      <button id="btn-setup">Continue</button>
+      <p class="error-text" id="setup-error" style="display: none;"></p>
+    </div>
+    
+    <!-- VirtualBox Install Screen -->
+    <div class="card screen" id="screen-vbox">
+      <h2>Install VirtualBox</h2>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">
+        VirtualBox is required to run PleaseDo in a secure, isolated environment.
+      </p>
+      <button id="btn-download-vbox">Download VirtualBox</button>
+      <p class="helper-text">After installing, restart this app.</p>
+    </div>
+    
+    <!-- Config Screen -->
+    <div class="card screen" id="screen-config">
+      <h2>Enter API Key</h2>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">
+        Get your key at <span class="link" id="link-anthropic">console.anthropic.com</span>
+      </p>
+      <input type="password" id="input-apikey" placeholder="sk-ant-..." />
+      <input type="text" id="input-telegram" placeholder="Telegram bot token (optional)" />
+      <button id="btn-save-config">Save & Continue</button>
+      <p class="error-text" id="config-error" style="display: none;"></p>
+    </div>
+    
+    <!-- Main Screen -->
+    <div class="card screen" id="screen-main">
+      <div style="text-align: center;">
+        <button class="main-button" id="btn-power">▶</button>
+        <p id="main-status">Click to start</p>
+        <div class="progress-bar" id="main-progress-bar" style="display: none;">
+          <div class="progress-fill" id="main-progress"></div>
+        </div>
+      </div>
+      <button class="secondary" id="btn-chat" style="margin-top: 20px; display: none;">
+        Open Chat Interface
+      </button>
+    </div>
+  </div>
+  
+  <div class="status-bar">
+    <div class="status-text">
+      <div class="status-dot off" id="status-dot"></div>
+      <span id="status-text">Not running</span>
+    </div>
+    <span class="link" id="btn-settings">Settings</span>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
