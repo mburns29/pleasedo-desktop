@@ -1,124 +1,206 @@
 # PleaseDo Desktop - Windows Installer
 # Run this in PowerShell as Administrator
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "   PleaseDo Desktop - Windows Setup    " -ForegroundColor Cyan  
-Write-Host "========================================" -ForegroundColor Cyan
+$ErrorActionPreference = "Stop"
+
+function Write-Step($step, $message) {
+    Write-Host ""
+    Write-Host "[$step] $message" -ForegroundColor Cyan
+    Write-Host ("-" * 50) -ForegroundColor DarkGray
+}
+
+function Write-Success($message) {
+    Write-Host "  ✓ $message" -ForegroundColor Green
+}
+
+function Write-Info($message) {
+    Write-Host "  → $message" -ForegroundColor White
+}
+
+function Write-Warn($message) {
+    Write-Host "  ⚠ $message" -ForegroundColor Yellow
+}
+
+function Write-Fail($message) {
+    Write-Host "  ✗ $message" -ForegroundColor Red
+}
+
+Clear-Host
+Write-Host ""
+Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Magenta
+Write-Host "║     PleaseDo Desktop - Windows Setup     ║" -ForegroundColor Magenta
+Write-Host "║         Clawdbot for Everyone            ║" -ForegroundColor Magenta
+Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Magenta
 Write-Host ""
 
-# Check if running as Administrator
+# ═══════════════════════════════════════════════════════════════
+# Step 0: Pre-flight checks
+# ═══════════════════════════════════════════════════════════════
+Write-Step "0/4" "Pre-flight checks"
+
+# Check Administrator
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 if (-not $isAdmin) {
-    Write-Host "Please run this script as Administrator!" -ForegroundColor Red
-    Write-Host "Right-click PowerShell -> Run as Administrator" -ForegroundColor Yellow
+    Write-Fail "Not running as Administrator"
+    Write-Info "Please right-click PowerShell and select 'Run as Administrator'"
+    Write-Host ""
     pause
     exit 1
 }
+Write-Success "Running as Administrator"
 
 # Check Windows version
 $winVer = [System.Environment]::OSVersion.Version
-if ($winVer.Build -lt 19041) {
-    Write-Host "Windows 10 version 2004 or later required for WSL2" -ForegroundColor Red
+$winBuild = $winVer.Build
+if ($winBuild -lt 19041) {
+    Write-Fail "Windows 10 version 2004 or later required (you have build $winBuild)"
+    Write-Info "Please update Windows and try again"
+    Write-Host ""
+    pause
+    exit 1
+}
+Write-Success "Windows version OK (build $winBuild)"
+
+# ═══════════════════════════════════════════════════════════════
+# Step 1: WSL
+# ═══════════════════════════════════════════════════════════════
+Write-Step "1/4" "Windows Subsystem for Linux"
+
+try {
+    $wslFeature = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+    $vmFeature = Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform
+    
+    if ($wslFeature.State -ne "Enabled" -or $vmFeature.State -ne "Enabled") {
+        Write-Info "Installing WSL components..."
+        
+        if ($wslFeature.State -ne "Enabled") {
+            dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart | Out-Null
+        }
+        if ($vmFeature.State -ne "Enabled") {
+            dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart | Out-Null
+        }
+        
+        Write-Success "WSL components installed"
+        Write-Warn "RESTART REQUIRED"
+        Write-Host ""
+        Write-Host "  Please restart your computer, then run this script again." -ForegroundColor Yellow
+        Write-Host ""
+        pause
+        exit 0
+    }
+    Write-Success "WSL is enabled"
+    
+    # Set WSL2 as default
+    wsl --set-default-version 2 2>$null | Out-Null
+    Write-Success "WSL2 set as default"
+    
+} catch {
+    Write-Fail "WSL setup failed: $_"
     pause
     exit 1
 }
 
-Write-Host "Step 1: Checking WSL..." -ForegroundColor Yellow
+# ═══════════════════════════════════════════════════════════════
+# Step 2: Ubuntu
+# ═══════════════════════════════════════════════════════════════
+Write-Step "2/4" "Ubuntu Linux"
 
-# Check if WSL is installed
-$wslInstalled = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
-
-if ($wslInstalled.State -ne "Enabled") {
-    Write-Host "Installing WSL..." -ForegroundColor Yellow
-    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-    
-    Write-Host ""
-    Write-Host "WSL installed! Please restart your computer and run this script again." -ForegroundColor Green
-    pause
-    exit 0
-}
-
-# Set WSL2 as default
-wsl --set-default-version 2 2>$null
-
-Write-Host "WSL is ready!" -ForegroundColor Green
-Write-Host ""
-
-# Check if Ubuntu is installed
-Write-Host "Step 2: Checking Ubuntu..." -ForegroundColor Yellow
-$ubuntuInstalled = wsl -l -q 2>$null | Where-Object { $_ -match "Ubuntu" }
+$ubuntuInstalled = $false
+try {
+    $distros = wsl -l -q 2>$null
+    if ($distros -match "Ubuntu") {
+        $ubuntuInstalled = $true
+    }
+} catch {}
 
 if (-not $ubuntuInstalled) {
-    Write-Host "Installing Ubuntu (this may take a few minutes)..." -ForegroundColor Yellow
-    wsl --install -d Ubuntu --no-launch
+    Write-Info "Installing Ubuntu (this takes 2-5 minutes)..."
+    
+    try {
+        wsl --install -d Ubuntu --no-launch 2>&1 | Out-Null
+        Write-Success "Ubuntu downloaded"
+    } catch {
+        Write-Fail "Ubuntu install failed: $_"
+        pause
+        exit 1
+    }
     
     Write-Host ""
-    Write-Host "Ubuntu installed!" -ForegroundColor Green
-    Write-Host "Please complete these steps:" -ForegroundColor Yellow
+    Write-Warn "SETUP REQUIRED"
+    Write-Host ""
     Write-Host "  1. Open 'Ubuntu' from the Start menu" -ForegroundColor White
     Write-Host "  2. Create a username and password when prompted" -ForegroundColor White
-    Write-Host "  3. Run this script again" -ForegroundColor White
+    Write-Host "  3. Close Ubuntu and run this script again" -ForegroundColor White
+    Write-Host ""
     pause
     exit 0
 }
+Write-Success "Ubuntu is installed"
 
-Write-Host "Ubuntu is ready!" -ForegroundColor Green
-Write-Host ""
-
-# Download and run the Clawdbot installer in WSL
-Write-Host "Step 3: Installing Clawdbot..." -ForegroundColor Yellow
-Write-Host ""
+# ═══════════════════════════════════════════════════════════════
+# Step 3: Clawdbot
+# ═══════════════════════════════════════════════════════════════
+Write-Step "3/4" "Installing Clawdbot"
 
 $installScript = @'
 #!/bin/bash
 set -e
 
-# Update packages
-sudo apt-get update
+echo "Updating packages..."
+sudo apt-get update -qq
 
-# Install curl if needed
-sudo apt-get install -y curl
-
-# Download and run Clawdbot installer
-curl -fsSL https://raw.githubusercontent.com/clawdbot/clawdbot/main/install.sh | bash
-
-# Or if that doesn't exist, install manually:
-if ! command -v clawdbot &> /dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    sudo npm install -g clawdbot
+echo "Installing Node.js 22..."
+if ! command -v node &> /dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - >/dev/null 2>&1
+    sudo apt-get install -y nodejs >/dev/null 2>&1
 fi
+echo "Node.js: $(node --version)"
 
-echo ""
-echo "Clawdbot installed! Version: $(clawdbot --version)"
-echo ""
-echo "Next steps:"
-echo "  1. Open Ubuntu from Start menu"
-echo "  2. Run: clawdbot configure"
-echo "  3. Enter your Anthropic API key"
-echo "  4. Run: clawdbot gateway start"
+echo "Installing Clawdbot..."
+sudo npm install -g clawdbot >/dev/null 2>&1
+echo "Clawdbot: $(clawdbot --version)"
+
+echo "DONE"
 '@
 
-# Save script and run in WSL
 $scriptPath = "$env:TEMP\install-clawdbot.sh"
 $installScript | Out-File -FilePath $scriptPath -Encoding utf8 -Force
-
-# Convert line endings
 (Get-Content $scriptPath) | Set-Content $scriptPath
 
-wsl -d Ubuntu -- bash -c "cat /mnt/c/Users/$env:USERNAME/AppData/Local/Temp/install-clawdbot.sh | tr -d '\r' | bash"
+Write-Info "Installing in Ubuntu (this takes 1-2 minutes)..."
+
+try {
+    $output = wsl -d Ubuntu -- bash -c "cat /mnt/c/Users/$env:USERNAME/AppData/Local/Temp/install-clawdbot.sh | tr -d '\r' | bash" 2>&1
+    
+    if ($output -match "DONE") {
+        Write-Success "Clawdbot installed"
+    } else {
+        Write-Warn "Installation may have issues - check manually"
+    }
+} catch {
+    Write-Fail "Installation failed: $_"
+    pause
+    exit 1
+}
+
+# ═══════════════════════════════════════════════════════════════
+# Step 4: Done!
+# ═══════════════════════════════════════════════════════════════
+Write-Step "4/4" "Complete!"
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "   Installation Complete!              " -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Green
+Write-Host "║       Installation Complete! 🎉         ║" -ForegroundColor Green
+Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
-Write-Host "To use Clawdbot:" -ForegroundColor Yellow
+Write-Host "  Next steps:" -ForegroundColor Yellow
+Write-Host ""
 Write-Host "  1. Open 'Ubuntu' from the Start menu" -ForegroundColor White
-Write-Host "  2. Run: clawdbot configure" -ForegroundColor White
-Write-Host "  3. Run: clawdbot gateway start" -ForegroundColor White
+Write-Host "  2. Run: " -NoNewline; Write-Host "clawdbot configure" -ForegroundColor Cyan
+Write-Host "  3. Enter your Anthropic API key" -ForegroundColor White
+Write-Host "  4. Run: " -NoNewline; Write-Host "clawdbot gateway start" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Get your API key at: https://console.anthropic.com" -ForegroundColor Cyan
+Write-Host "  Get your API key at: " -NoNewline
+Write-Host "https://console.anthropic.com" -ForegroundColor Blue
 Write-Host ""
 pause
