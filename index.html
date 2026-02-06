@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PleaseDo Desktop - Clawdbot for Everyone</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h3 {
+            margin: 20px 0 10px;
+            color: #444;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .steps {
+            list-style: none;
+            counter-reset: step;
+        }
+        .steps li {
+            counter-increment: step;
+            margin: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+        .steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .feature .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        a { color: #667eea; }
+        footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🤖 PleaseDo Desktop</h1>
+            <p>Run your own AI agent locally. No cloud required.</p>
+        </div>
+
+        <div class="card">
+            <h2>✨ What You Get</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="icon">🔍</div>
+                    <strong>Web Search</strong>
+                    <p>Search and fetch web content</p>
+                </div>
+                <div class="feature">
+                    <div class="icon">📁</div>
+                    <strong>File Operations</strong>
+                    <p>Read, write, organize files</p>
+                </div>
+                <div class="feature">
+                    <div class="icon">🌐</div>
+                    <strong>Browser Automation</strong>
+                    <p>Control websites automatically</p>
+                </div>
+                <div class="feature">
+                    <div class="icon">📱</div>
+                    <strong>Telegram Access</strong>
+                    <p>Chat from your phone</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🪟 Windows Installation</h2>
+            <ol class="steps">
+                <li>Open <strong>PowerShell as Administrator</strong><br>
+                    <small>(Right-click Start → "Windows PowerShell (Admin)")</small></li>
+                <li>Paste and run:
+                    <pre>Set-ExecutionPolicy Bypass -Scope Process -Force
+irm https://stackedrei.com/pleasedo-desktop/windows-installer/Install-PleaseDo.ps1 | iex</pre>
+                </li>
+                <li>Follow the setup wizard</li>
+            </ol>
+            <div class="note">
+                <strong>Note:</strong> This installs WSL2 (Windows Subsystem for Linux) if needed. 
+                You may need to restart your computer during installation.
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🍎 macOS Installation</h2>
+            <ol class="steps">
+                <li>Open <strong>Terminal</strong><br>
+                    <small>(Applications → Utilities → Terminal)</small></li>
+                <li>Paste and run:
+                    <pre>curl -fsSL https://stackedrei.com/pleasedo-desktop/mac-installer/install.sh | bash</pre>
+                </li>
+                <li>Follow the setup wizard</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>🐧 Linux Installation</h2>
+            <pre># Install Node.js 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install Clawdbot
+sudo npm install -g clawdbot
+
+# Configure and start
+clawdbot configure
+clawdbot gateway start</pre>
+        </div>
+
+        <div class="card">
+            <h2>🔑 What You'll Need</h2>
+            <ul class="steps">
+                <li><strong>Anthropic API Key</strong> - Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></li>
+                <li><strong>Telegram Bot Token</strong> (optional) - Create via <a href="https://t.me/BotFather" target="_blank">@BotFather</a></li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>PleaseDo Desktop • Powered by <a href="https://github.com/clawdbot/clawdbot" style="color: white;">Clawdbot</a></p>
+        </footer>
+    </div>
+</body>
+</html>
