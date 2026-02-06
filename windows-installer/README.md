@@ -5,10 +5,9 @@
 Open PowerShell **as Administrator** and paste:
 
 ```powershell
-irm https://pleasedo.ai/install.ps1 | iex
+Set-ExecutionPolicy Bypass -Scope Process -Force
+irm https://stackedrei.com/pleasedo-desktop/windows-installer/Install-PleaseDo.ps1 | iex
 ```
-
-*(URL not live yet - use manual install below)*
 
 ---
 

@@ -22,17 +22,14 @@ No cloud required. Your data stays on your machine.
 
 ### Windows
 
-**Option A: Automated (Recommended)**
-
 1. Open PowerShell **as Administrator**
 2. Paste and run:
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://pleasedo.ai/install.ps1 | iex
+Set-ExecutionPolicy Bypass -Scope Process -Force
+irm https://stackedrei.com/pleasedo-desktop/windows-installer/Install-PleaseDo.ps1 | iex
 ```
 
-**Option B: Manual**
-
-See [windows-installer/README.md](windows-installer/README.md)
+See [windows-installer/README.md](windows-installer/README.md) for manual steps.
 
 ---
 
@@ -40,7 +37,7 @@ See [windows-installer/README.md](windows-installer/README.md)
 
 Open Terminal and run:
 ```bash
-/bin/bash -c "$(curl -fsSL https://pleasedo.ai/install-mac.sh)"
+curl -fsSL https://stackedrei.com/pleasedo-desktop/mac-installer/install.sh | bash
 ```
 
 Or manually:
