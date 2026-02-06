@@ -1,0 +1,13 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║                   PleaseDo Desktop v1.0                      ║
+║              Clawdbot AI Agent - Fully Isolated              ║
+╚══════════════════════════════════════════════════════════════╝
+
+Commands:
+  clawdbot gateway start   - Start the AI agent
+  clawdbot chat            - Chat in terminal
+  clawdbot configure       - Reconfigure settings
+
+Workspace: ~/workspace
+

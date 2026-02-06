@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PleaseDo Setup
+Exec=xfce4-terminal -e "/home/pleasedo/first-boot-setup.sh"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Comment=First-boot setup wizard for PleaseDo Desktop
