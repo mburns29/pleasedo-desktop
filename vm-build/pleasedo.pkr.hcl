@@ -29,13 +29,25 @@ source "virtualbox-iso" "pleasedo" {
   
   ssh_username     = "pleasedo"
   ssh_password     = "pleasedo"
-  ssh_timeout      = "30m"
+  ssh_timeout      = "45m"
+  ssh_handshake_attempts = 100
   
   shutdown_command = "sudo shutdown -P now"
   
+  boot_wait = "5s"
+  
   boot_command = [
+    "<wait10><wait10><wait10>",
     "<esc><wait>",
-    "auto url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<enter>"
+    "auto url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+    "debian-installer/locale=en_US.UTF-8 ",
+    "keyboard-configuration/xkb-keymap=us ",
+    "netcfg/get_hostname=pleasedo ",
+    "netcfg/get_domain=local ",
+    "fb=false debconf/frontend=noninteractive ",
+    "console-setup/ask_detect=false ",
+    "console-keymaps-at/keymap=us ",
+    "<enter>"
   ]
   
   http_directory = "http"
