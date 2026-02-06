@@ -9,12 +9,12 @@ packer {
 
 variable "debian_iso_url" {
   type    = string
-  default = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso"
+  default = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.3.0-amd64-netinst.iso"
 }
 
 variable "debian_iso_checksum" {
   type    = string
-  default = "sha256:1536d0a0e1cd0e8e0e5e6a6b9c6e1f8c4a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
+  default = "sha256:c9f09d24b7e834e6834f2ffa565b33d6f1f540d04bd25c79ad9953bc79a8ac02"
 }
 
 source "virtualbox-iso" "pleasedo" {
