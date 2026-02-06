@@ -37,8 +37,54 @@ echo "Starting Clawdbot configuration..."
 echo ""
 clawdbot configure
 
+# Lock down API key permissions (Security Fix #4)
+echo ""
+echo "Securing configuration files..."
+if [ -d "$HOME/.config/clawdbot" ]; then
+    chmod 700 "$HOME/.config/clawdbot"
+    chmod 600 "$HOME/.config/clawdbot"/*.json 2>/dev/null || true
+    chmod 600 "$HOME/.config/clawdbot"/*.yaml 2>/dev/null || true
+    echo "✓ Config permissions locked (owner-only)"
+fi
+
+# Also secure the workspace
+if [ -d "$HOME/workspace" ]; then
+    chmod 700 "$HOME/workspace"
+fi
+
 # Mark setup complete
 touch "$SETUP_DONE"
+
+# Security verification
+echo ""
+echo "Running security checks..."
+SECURITY_OK=true
+
+# Check SSH hardening
+if grep -q "PasswordAuthentication no" /etc/ssh/sshd_config 2>/dev/null; then
+    echo "✓ SSH password auth disabled"
+else
+    echo "⚠ SSH password auth may be enabled"
+    SECURITY_OK=false
+fi
+
+# Check firewall
+if sudo ufw status | grep -q "Status: active" 2>/dev/null; then
+    echo "✓ Firewall enabled"
+else
+    echo "⚠ Firewall not active"
+    SECURITY_OK=false
+fi
+
+# Check config permissions
+if [ -d "$HOME/.config/clawdbot" ]; then
+    PERMS=$(stat -c %a "$HOME/.config/clawdbot" 2>/dev/null)
+    if [ "$PERMS" = "700" ]; then
+        echo "✓ Config directory secured"
+    else
+        echo "⚠ Config directory permissions: $PERMS (should be 700)"
+    fi
+fi
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
@@ -46,6 +92,11 @@ echo "║                    Setup Complete! 🎉                        ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "Clawdbot is now configured!"
+if [ "$SECURITY_OK" = true ]; then
+    echo "Security: ✓ All checks passed"
+else
+    echo "Security: ⚠ Some checks need attention (see above)"
+fi
 echo ""
 echo "To start:  clawdbot gateway start"
 echo "To chat:   clawdbot chat"

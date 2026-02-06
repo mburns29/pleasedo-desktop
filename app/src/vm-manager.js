@@ -93,6 +93,9 @@ class VMManager {
     
     // Wait for boot
     await this.sleep(5000);
+    
+    // Apply any pending configuration
+    await this.applyPendingConfig();
   }
 
   async stopVM() {
@@ -160,16 +163,51 @@ class VMManager {
   }
 
   async configureClawdbot(config) {
-    // Write config to VM via SSH or shared folder
-    // For now, we'll use VBoxManage guestcontrol
-    const configJson = JSON.stringify({
-      anthropic: { apiKey: config.apiKey },
-      telegram: config.telegramToken ? { botToken: config.telegramToken } : undefined
-    });
+    // Store config to be written when VM starts
+    this.pendingConfig = config;
+    console.log('Config stored, will be applied when VM starts');
+  }
 
-    // This requires Guest Additions - simpler approach: use cloud-init or first-boot script
-    // For v1, user enters API key in the VM's first-boot wizard
-    console.log('Config would be:', configJson);
+  async saveSoulFile(content) {
+    // Store SOUL.md content to be written when VM starts
+    this.pendingSoul = content;
+    console.log('SOUL.md stored, will be applied when VM starts');
+  }
+
+  async applyPendingConfig() {
+    // Apply stored config and SOUL.md to running VM
+    if (!await this.isVMRunning()) {
+      return;
+    }
+
+    // Write files via SSH (guest must have SSH enabled)
+    // For now, we'll write to a shared folder that the VM mounts
+    const configDir = path.join(os.homedir(), '.pleasedo-vm-config');
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true, mode: 0o700 });
+    }
+
+    if (this.pendingConfig) {
+      const configJson = JSON.stringify({
+        anthropic: { apiKey: this.pendingConfig.apiKey },
+        telegram: this.pendingConfig.telegramToken ? { botToken: this.pendingConfig.telegramToken } : undefined
+      }, null, 2);
+      const configPath = path.join(configDir, 'clawdbot-config.json');
+      fs.writeFileSync(configPath, configJson, { mode: 0o600 });
+    }
+
+    if (this.pendingSoul) {
+      const soulPath = path.join(configDir, 'SOUL.md');
+      fs.writeFileSync(soulPath, this.pendingSoul, { mode: 0o600 });
+    }
+
+    // Lock down the directory (Security Fix #4)
+    try {
+      fs.chmodSync(configDir, 0o700);
+    } catch (e) {
+      // Windows doesn't support chmod the same way
+      console.log('Note: chmod not fully supported on this platform');
+    }
   }
 
   async sendToClawdbot(message) {

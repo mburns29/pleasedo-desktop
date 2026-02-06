@@ -272,10 +272,17 @@
     <div class="card screen" id="screen-vbox">
       <h2>Install VirtualBox</h2>
       <p style="color: var(--text-dim); margin-bottom: 20px;">
-        VirtualBox is required to run PleaseDo in a secure, isolated environment.
+        VirtualBox is required to run PleaseDo in a secure, isolated environment. We'll download and install it automatically.
       </p>
-      <button id="btn-download-vbox">Download VirtualBox</button>
-      <p class="helper-text">After installing, restart this app.</p>
+      <div id="vbox-progress-container" style="display: none; margin-bottom: 16px;">
+        <div class="progress-bar">
+          <div class="progress-fill" id="vbox-progress"></div>
+        </div>
+        <p id="vbox-progress-text" style="color: var(--text-dim); font-size: 13px; text-align: center; margin-top: 8px;">Starting...</p>
+      </div>
+      <button id="btn-download-vbox">Install VirtualBox</button>
+      <p class="error-text" id="vbox-error" style="display: none;"></p>
+      <p class="helper-text">~100MB download. You may need to approve an admin prompt.</p>
     </div>
     
     <!-- Config Screen -->
@@ -288,6 +295,178 @@
       <input type="text" id="input-telegram" placeholder="Telegram bot token (optional)" />
       <button id="btn-save-config">Save & Continue</button>
       <p class="error-text" id="config-error" style="display: none;"></p>
+    </div>
+    
+    <!-- Personalization Screen 1: Identity -->
+    <div class="card screen" id="screen-persona-1">
+      <h2>Let's Get Acquainted</h2>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">
+        Help your agent understand who it's working with.
+      </p>
+      <input type="text" id="input-owner-name" placeholder="What should I call you?" />
+      <input type="text" id="input-agent-name" placeholder="Name your agent (e.g., Jarvis, Friday...)" value="Clawd" />
+      
+      <p style="color: var(--text-dim); font-size: 13px; margin: 16px 0 8px;">What's my main job?</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="role" value="business" style="width: auto; margin-right: 12px;">
+          <span>🏢 Business Partner — help run and grow my business</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="role" value="dev" style="width: auto; margin-right: 12px;">
+          <span>💻 Dev Partner — help build software and manage infra</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="role" value="creative" style="width: auto; margin-right: 12px;">
+          <span>✍️ Creative Partner — help write, design, create content</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="role" value="research" style="width: auto; margin-right: 12px;">
+          <span>📊 Research Partner — help analyze and make decisions</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="role" value="assistant" checked style="width: auto; margin-right: 12px;">
+          <span>🏠 Personal Assistant — help manage tasks and info</span>
+        </label>
+      </div>
+      <button id="btn-persona-1-next">Next</button>
+    </div>
+    
+    <!-- Personalization Screen 1b: Context -->
+    <div class="card screen" id="screen-persona-1b">
+      <h2>Tell Me About You</h2>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">
+        This context helps me give you specific, relevant answers.
+      </p>
+      <textarea id="input-owner-context" placeholder="e.g., I run a real estate investment company, I'm a freelance designer, I'm building a SaaS startup..." style="width: 100%; height: 100px; padding: 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: rgba(255,255,255,0.05); color: var(--text); font-size: 15px; resize: none; margin-bottom: 16px;"></textarea>
+      
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 8px;">How technical are you?</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="technical" value="non-technical" style="width: auto; margin-right: 12px;">
+          <span>🟢 Non-technical — explain things simply</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="technical" value="vibe-coder" checked style="width: auto; margin-right: 12px;">
+          <span>🟡 Vibe coder — I follow technical concepts but don't code from scratch</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="technical" value="technical" style="width: auto; margin-right: 12px;">
+          <span>🟠 Technical — talk to me like a developer</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="technical" value="expert" style="width: auto; margin-right: 12px;">
+          <span>🔴 Expert — give me the advanced version</span>
+        </label>
+      </div>
+      <button id="btn-persona-1b-next">Next</button>
+    </div>
+    
+    <!-- Personalization Screen 2: Communication Style -->
+    <div class="card screen" id="screen-persona-2">
+      <h2>How Should I Communicate?</h2>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">
+        Set the tone and style for our conversations.
+      </p>
+      
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 8px;">Communication style:</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="comm-style" value="direct" checked style="width: auto; margin-right: 12px;">
+          <span>🎯 Straight shooter — no fluff, get to the point</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="comm-style" value="balanced" style="width: auto; margin-right: 12px;">
+          <span>⚖️ Balanced — clear and friendly, some explanation</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="comm-style" value="thorough" style="width: auto; margin-right: 12px;">
+          <span>🧑‍🏫 Thorough — explain your thinking, I like the why</span>
+        </label>
+      </div>
+      
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 8px;">Pick the vibe:</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="tone" value="casual" style="width: auto; margin-right: 12px;">
+          <span>😎 Casual — like a smart friend</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="tone" value="professional" checked style="width: auto; margin-right: 12px;">
+          <span>🤝 Professional — like a trusted colleague</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="tone" value="formal" style="width: auto; margin-right: 12px;">
+          <span>🎩 Formal — like a consultant</span>
+        </label>
+      </div>
+      <button id="btn-persona-2-next">Next</button>
+    </div>
+    
+    <!-- Personalization Screen 3: Autonomy -->
+    <div class="card screen" id="screen-persona-3">
+      <h2>Autonomy & Boundaries</h2>
+      <p style="color: var(--text-dim); margin-bottom: 16px;">
+        How independent should I be?
+      </p>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="autonomy" value="ask-first" style="width: auto; margin-right: 12px;">
+          <span>🙋 Ask first — check with me before doing anything significant</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="autonomy" value="suggest-act" checked style="width: auto; margin-right: 12px;">
+          <span>⚡ Suggest & act — do the obvious stuff, ask about judgment calls</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" name="autonomy" value="proactive" style="width: auto; margin-right: 12px;">
+          <span>🚀 Take initiative — handle things proactively, only ask on big decisions</span>
+        </label>
+      </div>
+      
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 8px;">
+        <strong>Always</strong> require my approval for:
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-purchases" checked style="width: auto; margin-right: 12px;">
+          <span>💰 Spending money or making purchases</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-email" checked style="width: auto; margin-right: 12px;">
+          <span>📧 Sending emails or messages to others</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-social" checked style="width: auto; margin-right: 12px;">
+          <span>🌐 Posting to social media</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-delete" checked style="width: auto; margin-right: 12px;">
+          <span>🗑️ Deleting files or data</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-security" checked style="width: auto; margin-right: 12px;">
+          <span>🔒 Changing passwords or security settings</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-signup" checked style="width: auto; margin-right: 12px;">
+          <span>📝 Signing up for services or accounts</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-contact" checked style="width: auto; margin-right: 12px;">
+          <span>📞 Contacting anyone on my behalf</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-production" checked style="width: auto; margin-right: 12px;">
+          <span>💾 Modifying production/live systems</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="block-install" checked style="width: auto; margin-right: 12px;">
+          <span>📦 Installing software or plugins</span>
+        </label>
+      </div>
+      <button id="btn-persona-3-next">Create My Agent</button>
     </div>
     
     <!-- Main Screen -->
@@ -310,8 +489,354 @@
       <div class="status-dot off" id="status-dot"></div>
       <span id="status-text">Not running</span>
     </div>
-    <span class="link" id="btn-settings">Settings</span>
+    <div>
+      <span class="link" id="btn-integrations" style="margin-right: 16px;">Integrations</span>
+      <span class="link" id="btn-settings">Settings</span>
+    </div>
   </div>
+  
+  <!-- Integrations Screen -->
+  <div class="card screen" id="screen-integrations" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">Integrations</h2>
+      <span class="link" id="btn-integrations-back">← Back</span>
+    </div>
+    
+    <!-- Communication -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Communication</p>
+      
+      <div class="integration-item" data-service="telegram">
+        <div class="integration-icon">💬</div>
+        <div class="integration-info">
+          <div class="integration-name">Telegram</div>
+          <div class="integration-desc">Chat with your agent from anywhere</div>
+        </div>
+        <button class="integration-btn" data-type="guide">Setup</button>
+      </div>
+      
+      <div class="integration-item" data-service="slack">
+        <div class="integration-icon">💼</div>
+        <div class="integration-info">
+          <div class="integration-name">Slack</div>
+          <div class="integration-desc">Integrate with your workspace</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="discord">
+        <div class="integration-icon">🎮</div>
+        <div class="integration-info">
+          <div class="integration-name">Discord</div>
+          <div class="integration-desc">Add your agent to a server</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="resend">
+        <div class="integration-icon">📧</div>
+        <div class="integration-info">
+          <div class="integration-name">Resend</div>
+          <div class="integration-desc">Send emails on your behalf</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+      
+      <div class="integration-item" data-service="twilio">
+        <div class="integration-icon">📱</div>
+        <div class="integration-info">
+          <div class="integration-name">Twilio</div>
+          <div class="integration-desc">SMS and voice calls</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+    </div>
+    
+    <!-- Productivity -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Productivity</p>
+      
+      <div class="integration-item" data-service="google">
+        <div class="integration-icon">🔷</div>
+        <div class="integration-info">
+          <div class="integration-name">Google</div>
+          <div class="integration-desc">Calendar, Drive, Gmail</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="notion">
+        <div class="integration-icon">📝</div>
+        <div class="integration-info">
+          <div class="integration-name">Notion</div>
+          <div class="integration-desc">Read and write pages & databases</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="todoist">
+        <div class="integration-icon">✅</div>
+        <div class="integration-info">
+          <div class="integration-name">Todoist</div>
+          <div class="integration-desc">Manage your tasks</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="linear">
+        <div class="integration-icon">🔲</div>
+        <div class="integration-info">
+          <div class="integration-name">Linear</div>
+          <div class="integration-desc">Issue tracking and projects</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="trello">
+        <div class="integration-icon">📋</div>
+        <div class="integration-info">
+          <div class="integration-name">Trello</div>
+          <div class="integration-desc">Boards and cards</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="airtable">
+        <div class="integration-icon">📊</div>
+        <div class="integration-info">
+          <div class="integration-name">Airtable</div>
+          <div class="integration-desc">Databases and automations</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+    </div>
+    
+    <!-- Development -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Development</p>
+      
+      <div class="integration-item" data-service="github">
+        <div class="integration-icon">🐙</div>
+        <div class="integration-info">
+          <div class="integration-name">GitHub</div>
+          <div class="integration-desc">Repos, issues, pull requests</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="gitlab">
+        <div class="integration-icon">🦊</div>
+        <div class="integration-info">
+          <div class="integration-name">GitLab</div>
+          <div class="integration-desc">Repos and CI/CD</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="vercel">
+        <div class="integration-icon">▲</div>
+        <div class="integration-info">
+          <div class="integration-name">Vercel</div>
+          <div class="integration-desc">Deploy and manage projects</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="cloudflare">
+        <div class="integration-icon">🔶</div>
+        <div class="integration-info">
+          <div class="integration-name">Cloudflare</div>
+          <div class="integration-desc">Workers, DNS, analytics</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+      
+      <div class="integration-item" data-service="digitalocean">
+        <div class="integration-icon">🌊</div>
+        <div class="integration-info">
+          <div class="integration-name">DigitalOcean</div>
+          <div class="integration-desc">Droplets and infrastructure</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="railway">
+        <div class="integration-icon">🚂</div>
+        <div class="integration-info">
+          <div class="integration-name">Railway</div>
+          <div class="integration-desc">Deploy apps instantly</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+    </div>
+    
+    <!-- Finance -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Payments & Finance</p>
+      
+      <div class="integration-item" data-service="stripe">
+        <div class="integration-icon">💳</div>
+        <div class="integration-info">
+          <div class="integration-name">Stripe</div>
+          <div class="integration-desc">Payments and subscriptions</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="quickbooks">
+        <div class="integration-icon">📒</div>
+        <div class="integration-info">
+          <div class="integration-name">QuickBooks</div>
+          <div class="integration-desc">Accounting and invoices</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+    </div>
+    
+    <!-- Social -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Social Media</p>
+      
+      <div class="integration-item" data-service="twitter">
+        <div class="integration-icon">🐦</div>
+        <div class="integration-info">
+          <div class="integration-name">Twitter / X</div>
+          <div class="integration-desc">Post and monitor tweets</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="linkedin">
+        <div class="integration-icon">💼</div>
+        <div class="integration-info">
+          <div class="integration-name">LinkedIn</div>
+          <div class="integration-desc">Post and networking</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="youtube">
+        <div class="integration-icon">▶️</div>
+        <div class="integration-info">
+          <div class="integration-name">YouTube</div>
+          <div class="integration-desc">Manage channel and videos</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+    </div>
+    
+    <!-- AI & Tools -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">AI & Tools</p>
+      
+      <div class="integration-item" data-service="openai">
+        <div class="integration-icon">🤖</div>
+        <div class="integration-info">
+          <div class="integration-name">OpenAI</div>
+          <div class="integration-desc">GPT, DALL-E, Whisper</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+      
+      <div class="integration-item" data-service="elevenlabs">
+        <div class="integration-icon">🔊</div>
+        <div class="integration-info">
+          <div class="integration-name">ElevenLabs</div>
+          <div class="integration-desc">Text to speech</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+      
+      <div class="integration-item" data-service="browserless">
+        <div class="integration-icon">🌐</div>
+        <div class="integration-info">
+          <div class="integration-name">Browserless</div>
+          <div class="integration-desc">Headless browser automation</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+      
+      <div class="integration-item" data-service="brave">
+        <div class="integration-icon">🔍</div>
+        <div class="integration-info">
+          <div class="integration-name">Brave Search</div>
+          <div class="integration-desc">Web search API</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+    </div>
+    
+    <!-- Storage -->
+    <div style="margin-bottom: 24px;">
+      <p style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Storage</p>
+      
+      <div class="integration-item" data-service="dropbox">
+        <div class="integration-icon">📦</div>
+        <div class="integration-info">
+          <div class="integration-name">Dropbox</div>
+          <div class="integration-desc">File storage and sync</div>
+        </div>
+        <button class="integration-btn" data-type="oauth">Connect</button>
+      </div>
+      
+      <div class="integration-item" data-service="aws">
+        <div class="integration-icon">☁️</div>
+        <div class="integration-info">
+          <div class="integration-name">AWS S3</div>
+          <div class="integration-desc">Object storage</div>
+        </div>
+        <button class="integration-btn" data-type="apikey">Setup</button>
+      </div>
+    </div>
+    
+    <p style="color: var(--text-dim); font-size: 12px; text-align: center; margin-top: 20px;">
+      More integrations coming soon. <span class="link" id="btn-request-integration">Request one →</span>
+    </p>
+  </div>
+
+  <style>
+    .integration-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .integration-item:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    .integration-icon {
+      font-size: 24px;
+      width: 40px;
+      text-align: center;
+    }
+    .integration-info {
+      flex: 1;
+      margin-left: 12px;
+    }
+    .integration-name {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .integration-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .integration-btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      width: auto;
+      background: rgba(255,255,255,0.1);
+    }
+    .integration-btn:hover {
+      background: var(--primary);
+    }
+    .integration-btn.connected {
+      background: var(--success);
+      pointer-events: none;
+    }
+  </style>
 
   <script src="renderer.js"></script>
 </body>
