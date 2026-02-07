@@ -35,18 +35,12 @@ source "virtualbox-iso" "pleasedo" {
   shutdown_command = "sudo shutdown -P now"
   
   boot_wait = "5s"
+  headless = false
   
   boot_command = [
     "<wait10><wait10><wait10>",
-    "<esc><wait>",
-    "auto url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-    "debian-installer/locale=en_US.UTF-8 ",
-    "keyboard-configuration/xkb-keymap=us ",
-    "netcfg/get_hostname=pleasedo ",
-    "netcfg/get_domain=local ",
-    "fb=false debconf/frontend=noninteractive ",
-    "console-setup/ask_detect=false ",
-    "console-keymaps-at/keymap=us ",
+    "<tab>",
+    " auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
     "<enter>"
   ]
   
