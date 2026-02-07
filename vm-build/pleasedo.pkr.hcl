@@ -38,10 +38,10 @@ source "virtualbox-iso" "pleasedo" {
   headless = false
   
   boot_command = [
-    "<wait10><wait10><wait10>",
+    "<wait5>",
+    "<down><wait>",
     "<tab>",
-    " auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-    "<enter>"
+    " auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<enter>"
   ]
   
   http_directory = "http"
