@@ -34,8 +34,10 @@ source "virtualbox-iso" "pleasedo" {
   
   ssh_username     = "pleasedo"
   ssh_password     = "pleasedo"
-  ssh_timeout      = "45m"
-  ssh_handshake_attempts = 100
+  ssh_timeout      = "60m"
+  ssh_handshake_attempts = 200
+  ssh_wait_timeout = "60m"
+  pause_before_connecting = "30s"
   
   shutdown_command = "sudo shutdown -P now"
   
