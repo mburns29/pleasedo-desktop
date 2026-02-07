@@ -41,7 +41,7 @@ source "virtualbox-iso" "pleasedo" {
     "<wait5>",
     "<down><wait>",
     "<tab>",
-    " auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<enter>"
+    " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg auto=true priority=critical netcfg/choose_interface=auto<enter>"
   ]
   
   http_directory = "http"
