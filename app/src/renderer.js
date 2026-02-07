@@ -30,6 +30,7 @@ const screens = {
   persona2: document.getElementById('screen-persona-2'),
   persona3: document.getElementById('screen-persona-3'),
   main: document.getElementById('screen-main'),
+  chat: document.getElementById('screen-chat'),
   integrations: document.getElementById('screen-integrations')
 };
 
@@ -128,16 +129,16 @@ async function checkSetup() {
   setStepStatus('config', 'done');
   document.getElementById('setup-progress').style.width = '100%';
   
-  // All done - show main screen
-  showScreen('main');
-  
   // Check if already running
   if (status.vmRunning) {
     state.running = true;
-    document.getElementById('btn-power').textContent = '⏹';
-    document.getElementById('main-status').textContent = 'Running';
-    document.getElementById('btn-chat').style.display = 'block';
-    setStatus(true);
+    setStatus(true, 'Running');
+    updateChatHeader();
+    showScreen('chat');
+    chatInput.focus();
+  } else {
+    // Show main screen with start button
+    showScreen('main');
   }
 }
 
@@ -427,40 +428,31 @@ document.getElementById('btn-power').addEventListener('click', async () => {
   const btn = document.getElementById('btn-power');
   const status = document.getElementById('main-status');
   const progressBar = document.getElementById('main-progress-bar');
-  const chatBtn = document.getElementById('btn-chat');
   
   if (state.running) {
-    // Stop
-    btn.disabled = true;
-    btn.textContent = '⋯';
-    status.textContent = 'Stopping...';
-    setStatus(false, 'Stopping...');
-    
-    await window.pleasedo.stopVM();
-    
-    state.running = false;
-    btn.disabled = false;
-    btn.textContent = '▶';
-    status.textContent = 'Click to start';
-    chatBtn.style.display = 'none';
-    progressBar.style.display = 'none';
-    setStatus(false);
+    // Already running - go to chat
+    updateChatHeader();
+    showScreen('chat');
+    chatInput.focus();
   } else {
     // Start
     btn.disabled = true;
     btn.textContent = '⋯';
     progressBar.style.display = 'block';
     document.getElementById('main-progress').style.width = '0%';
+    status.textContent = 'Starting...';
     setStatus(false, 'Starting...');
     
     try {
       const result = await window.pleasedo.startVM();
       if (result.success) {
         state.running = true;
-        btn.textContent = '⏹';
-        status.textContent = 'Running';
-        chatBtn.style.display = 'block';
-        setStatus(true);
+        setStatus(true, 'Running');
+        
+        // Go straight to chat
+        updateChatHeader();
+        showScreen('chat');
+        chatInput.focus();
       } else {
         throw new Error(result.error);
       }
@@ -475,10 +467,7 @@ document.getElementById('btn-power').addEventListener('click', async () => {
   }
 });
 
-// Chat button
-document.getElementById('btn-chat').addEventListener('click', async () => {
-  await window.pleasedo.openChat();
-});
+// Chat button (legacy - now handled inline)
 
 // Settings
 document.getElementById('btn-settings').addEventListener('click', () => {
@@ -532,3 +521,128 @@ document.querySelectorAll('.integration-btn').forEach(btn => {
 document.getElementById('btn-request-integration').addEventListener('click', () => {
   require('electron').shell.openExternal('https://pleasedo.ai/integrations/request');
 });
+
+// ============================================
+// CHAT INTERFACE
+// ============================================
+
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const btnSend = document.getElementById('btn-send');
+const btnStop = document.getElementById('btn-stop');
+let isWaitingForResponse = false;
+
+// Auto-resize textarea
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  btnSend.disabled = !chatInput.value.trim();
+});
+
+// Send on Enter (Shift+Enter for newline)
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (chatInput.value.trim() && !isWaitingForResponse) {
+      sendMessage();
+    }
+  }
+});
+
+// Send button click
+btnSend.addEventListener('click', () => {
+  if (chatInput.value.trim() && !isWaitingForResponse) {
+    sendMessage();
+  }
+});
+
+// Stop button - return to main screen
+btnStop.addEventListener('click', async () => {
+  btnStop.disabled = true;
+  btnStop.textContent = '⋯ Stopping...';
+  
+  try {
+    await window.pleasedo.stopVM();
+    state.running = false;
+    showScreen('main');
+    document.getElementById('btn-power').textContent = '▶';
+    document.getElementById('main-status').textContent = 'Click to start';
+    setStatus(false);
+  } catch (err) {
+    console.error('Stop error:', err);
+  }
+  
+  btnStop.disabled = false;
+  btnStop.textContent = '⏹ Stop';
+});
+
+function addMessage(content, type = 'agent') {
+  // Remove welcome message on first real message
+  const welcome = chatMessages.querySelector('.chat-welcome');
+  if (welcome) welcome.remove();
+  
+  const msg = document.createElement('div');
+  msg.className = `chat-message ${type}`;
+  msg.textContent = content;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return msg;
+}
+
+function addTypingIndicator() {
+  const indicator = document.createElement('div');
+  indicator.className = 'chat-message thinking';
+  indicator.id = 'typing-indicator';
+  indicator.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+  chatMessages.appendChild(indicator);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const indicator = document.getElementById('typing-indicator');
+  if (indicator) indicator.remove();
+}
+
+async function sendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+  
+  // Clear input
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  btnSend.disabled = true;
+  
+  // Add user message
+  addMessage(message, 'user');
+  
+  // Show typing indicator
+  isWaitingForResponse = true;
+  addTypingIndicator();
+  
+  try {
+    const result = await window.pleasedo.sendMessage(message);
+    removeTypingIndicator();
+    
+    if (result.success) {
+      const response = result.response?.response || result.response?.message || result.response;
+      if (typeof response === 'string') {
+        addMessage(response, 'agent');
+      } else {
+        addMessage(JSON.stringify(response, null, 2), 'agent');
+      }
+    } else {
+      addMessage('Error: ' + (result.error || 'Failed to get response'), 'error');
+    }
+  } catch (err) {
+    removeTypingIndicator();
+    addMessage('Error: ' + err.message, 'error');
+  }
+  
+  isWaitingForResponse = false;
+}
+
+// Update agent name in chat header from persona
+function updateChatHeader() {
+  const agentName = persona.agentName || 'Clawd';
+  document.getElementById('chat-agent-name').textContent = agentName;
+}

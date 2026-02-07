@@ -224,6 +224,161 @@
       font-size: 14px;
       margin: 12px 0;
     }
+    
+    /* Chat Interface */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      background: var(--bg);
+    }
+    
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--card);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      -webkit-app-region: drag;
+    }
+    
+    .chat-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+    
+    .chat-stop-btn {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+      background: rgba(255,255,255,0.1);
+      -webkit-app-region: no-drag;
+    }
+    .chat-stop-btn:hover {
+      background: var(--error);
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .chat-welcome {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+    }
+    .chat-welcome-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .chat-welcome h3 {
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    
+    .chat-message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    
+    .chat-message.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .chat-message.agent {
+      align-self: flex-start;
+      background: var(--card);
+      border-bottom-left-radius: 4px;
+    }
+    
+    .chat-message.thinking {
+      align-self: flex-start;
+      background: var(--card);
+      color: var(--text-dim);
+      font-style: italic;
+    }
+    
+    .chat-message.error {
+      align-self: center;
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--error);
+      font-size: 13px;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--card);
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-size: 15px;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.4;
+    }
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .chat-send {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .chat-send:disabled {
+      opacity: 0.3;
+    }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 8px 0;
+    }
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-4px); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -469,7 +624,7 @@
       <button id="btn-persona-3-next">Create My Agent</button>
     </div>
     
-    <!-- Main Screen -->
+    <!-- Main Screen (Starting) -->
     <div class="card screen" id="screen-main">
       <div style="text-align: center;">
         <button class="main-button" id="btn-power">▶</button>
@@ -478,9 +633,30 @@
           <div class="progress-fill" id="main-progress"></div>
         </div>
       </div>
-      <button class="secondary" id="btn-chat" style="margin-top: 20px; display: none;">
-        Open Chat Interface
-      </button>
+    </div>
+    
+    <!-- Chat Screen -->
+    <div class="screen" id="screen-chat" style="width: 100%; max-width: 100%; height: 100%; padding: 0;">
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-status">
+            <div class="status-dot on" id="chat-status-dot"></div>
+            <span id="chat-agent-name">Clawd</span>
+          </div>
+          <button class="chat-stop-btn" id="btn-stop">⏹ Stop</button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-welcome">
+            <div class="chat-welcome-icon">🤖</div>
+            <h3>Ready to help!</h3>
+            <p>Ask me anything. I can search the web, write code, manage files, and more.</p>
+          </div>
+        </div>
+        <div class="chat-input-container">
+          <textarea class="chat-input" id="chat-input" placeholder="Message your agent..." rows="1"></textarea>
+          <button class="chat-send" id="btn-send">↑</button>
+        </div>
+      </div>
     </div>
   </div>
   
