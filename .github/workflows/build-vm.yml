@@ -1,0 +1,49 @@
+name: Build PleaseDo VM
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'vm-build/**'
+
+jobs:
+  build-ova:
+    runs-on: macos-13
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install VirtualBox
+        run: |
+          brew install --cask virtualbox
+          # Wait for kernel extensions
+          sleep 10
+      
+      - name: Install Packer
+        run: |
+          brew tap hashicorp/tap
+          brew install hashicorp/tap/packer
+      
+      - name: Init Packer
+        working-directory: vm-build
+        run: packer init .
+      
+      - name: Build OVA
+        working-directory: vm-build
+        run: |
+          packer build -var "headless=true" pleasedo.pkr.hcl
+      
+      - name: Upload OVA
+        uses: actions/upload-artifact@v4
+        with:
+          name: pleasedo-desktop-ova
+          path: vm-build/output-pleasedo/pleasedo-desktop.ova
+          retention-days: 30
+      
+      - name: Create Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: vm-build/output-pleasedo/pleasedo-desktop.ova

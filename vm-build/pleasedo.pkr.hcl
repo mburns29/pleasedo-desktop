@@ -17,6 +17,11 @@ variable "debian_iso_checksum" {
   default = "sha256:c9f09d24b7e834e6834f2ffa565b33d6f1f540d04bd25c79ad9953bc79a8ac02"
 }
 
+variable "headless" {
+  type    = bool
+  default = false
+}
+
 source "virtualbox-iso" "pleasedo" {
   guest_os_type    = "Debian_64"
   iso_url          = var.debian_iso_url
@@ -35,7 +40,7 @@ source "virtualbox-iso" "pleasedo" {
   shutdown_command = "sudo shutdown -P now"
   
   boot_wait = "5s"
-  headless = false
+  headless = var.headless
   
   boot_command = [
     "<wait5>",
